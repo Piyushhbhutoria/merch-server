@@ -1,25 +1,27 @@
 package db
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/vsouza/go-gin-boilerplate/config"
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/Piyushhbhutoria/merch-server/config"
+	"github.com/jackc/pgx/v4"
 )
 
-var db *dynamodb.DynamoDB
+var db *pgx.Conn
 
 func Init() {
 	c := config.GetConfig()
-	db = dynamodb.New(session.New(&aws.Config{
-		Region:      aws.String(c.GetString("db.region")),
-		Credentials: credentials.NewEnvCredentials(),
-		Endpoint:    aws.String(c.GetString("db.endpoint")),
-		DisableSSL:  aws.Bool(c.GetBool("db.disable_ssl")),
-	}))
+	conn, err := pgx.Connect(context.Background(), c.GetString("db.endpoint"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
+	}
+	db = conn
+	// defer db.Close(context.Background())
 }
 
-func GetDB() *dynamodb.DynamoDB {
+func GetDB() *pgx.Conn {
 	return db
 }
