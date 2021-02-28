@@ -13,7 +13,9 @@ var db *pgx.Conn
 
 func Init() {
 	c := config.GetConfig()
-	conn, err := pgx.Connect(context.Background(), c.GetString("db.endpoint"))
+	var dbURL string = fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", c.GetString("db.user"), c.GetString("db.password"), c.GetString("db.host"), c.GetString("db.port"), c.GetString("db.dbname"))
+
+	conn, err := pgx.Connect(context.Background(), dbURL)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
